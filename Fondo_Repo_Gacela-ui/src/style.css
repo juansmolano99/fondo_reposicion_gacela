@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Dark mode por clase (toggle manual) en lugar de prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Estilos globales */
+body {
+  font-family: 'Manrope', sans-serif;
+  @apply bg-background-light dark:bg-background-dark text-[#0d131c];
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Tu clase custom para el fondo del lado izquierdo */
+.bus-collage-bg {
+  background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)),
+    url('https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Tus colores custom (opcional pero recomendado para usar primary/accent) */
+@theme {
+  --color-primary: #0c4a6e;
+  --color-accent: #0ea5e9;
+  --color-background-light: #f8fafc;
+  --color-background-dark: #0f172a;
+}
+
+/* Ajustamos el contenedor del total reposición */
+.text-container {
+  max-width: 100%;        /* Asegura que no se desborde fuera del contenedor */
+  overflow: hidden;       /* Oculta cualquier contenido que se desborde */
+  text-overflow: ellipsis; /* Muestra '...' si el contenido es demasiado largo */
+  white-space: nowrap;    /* Evita que el texto se divida en varias líneas */
+}
+
+.toggle-checkbox {
+  top: 0;
+  left: 0;
+}
+
+.toggle-checkbox:checked {
+  left: 1rem;
+  border-color: #2563eb;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #2563eb;
+}
+
