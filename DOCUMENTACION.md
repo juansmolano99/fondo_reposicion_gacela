@@ -109,7 +109,7 @@ npm install
 npm run dev
 ```
 
-Por defecto se sirve en `http://localhost:5173`. La API se espera en `http://localhost:5092/api` (configurable en `src/api/axios.jsx`).
+Por defecto se sirve en `http://192.168.10.118:5173`. La API se espera en `http://192.168.10.118:5092/api` (configurable en `src/api/axios.jsx`).
 
 ### Backend
 
@@ -122,7 +122,7 @@ cd Backend
 dotnet run
 ```
 
-La API queda en `http://localhost:5092` (puerto según configuración).
+La API queda en `http://192.168.10.118:5092` (puerto según configuración).
 
 ---
 

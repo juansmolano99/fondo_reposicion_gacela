@@ -1,4 +1,4 @@
-POST http://localhost:5092/api/auth/login
+POST http://192.168.10.118:5092/api/auth/login
 Content-Type: application/json
 
 {
