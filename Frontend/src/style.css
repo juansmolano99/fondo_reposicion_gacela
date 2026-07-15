@@ -7,7 +7,7 @@
 /* Estilos globales */
 body {
   font-family: 'Manrope', sans-serif;
-  @apply bg-background-light dark:bg-background-dark text-[#0d131c];
+  @apply bg-background-light dark:bg-background-dark text-[#0d131c] dark:text-slate-100;
   transition: background-color 0.2s, color 0.2s;
 }
 
@@ -33,6 +33,26 @@ body {
   overflow: hidden;       /* Oculta cualquier contenido que se desborde */
   text-overflow: ellipsis; /* Muestra '...' si el contenido es demasiado largo */
   white-space: nowrap;    /* Evita que el texto se divida en varias líneas */
+}
+
+.card {
+  @apply bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm;
+}
+
+.card-header {
+  @apply flex items-start justify-between gap-4 flex-wrap;
+}
+
+.card-title {
+  @apply text-lg font-extrabold text-slate-900 dark:text-white;
+}
+
+.card-subtitle {
+  @apply text-xs text-slate-500 dark:text-slate-400;
+}
+
+.card-section {
+  @apply p-6;
 }
 
 .toggle-checkbox {

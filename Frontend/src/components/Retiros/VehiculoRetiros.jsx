@@ -9,7 +9,7 @@ const formatCOP = (value) =>
     minimumFractionDigits: 0,
   }).format(Number(value || 0));
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.10.118:5092";
+const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.10.142:5092";
 
 function VerAdjuntoLink({ ruta }) {
   const [loading, setLoading] = useState(false);
@@ -51,6 +51,12 @@ export default function VehiculoRetiros({ placa }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const parseCurrencyToNumber = (raw) => {
+    if (raw == null) return 0;
+    const digits = String(raw).replace(/[^0-9]/g, "");
+    return digits ? Number(digits) : 0;
+  };
+
   const cargarDatos = async () => {
     setLoading(true);
     setError(null);
@@ -73,7 +79,8 @@ export default function VehiculoRetiros({ placa }) {
   }, [placa]);
 
   const registrarRetiro = async () => {
-    if (!monto || Number(monto) <= 0) {
+    const montoNumerico = parseCurrencyToNumber(monto);
+    if (!monto || montoNumerico <= 0) {
       setError("Monto inválido");
       return;
     }
@@ -83,14 +90,14 @@ export default function VehiculoRetiros({ placa }) {
       if (archivo && archivo.size > 0) {
         const formData = new FormData();
         formData.append("placa", placa);
-        formData.append("monto", String(Number(monto)));
+        formData.append("monto", String(montoNumerico));
         formData.append("observacion", observacion || "");
         formData.append("archivo", archivo);
         await crearRetiroConAdjunto(formData);
       } else {
         await crearRetiro({
           placa,
-          monto: Number(monto),
+          monto: montoNumerico,
           observacion: observacion || undefined,
         });
       }
@@ -128,10 +135,8 @@ export default function VehiculoRetiros({ placa }) {
 
         {/* FORMULARIO */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full">
-            <h2 className="text-lg font-bold mb-6">
-              Registrar retiro
-            </h2>
+          <div className="card card-section h-full dark:bg-slate-800 dark:border-slate-700">
+            <h2 className="card-title mb-6">Registrar retiro</h2>
 
             <div className="space-y-5">
 
@@ -144,9 +149,13 @@ export default function VehiculoRetiros({ placa }) {
                     $
                   </span>
                   <input
-                    type="number"
+                    type="text"
                     value={monto}
-                    onChange={(e) => setMonto(e.target.value)}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      const n = parseCurrencyToNumber(e.target.value);
+                      setMonto(n ? formatCOP(n) : "");
+                    }}
                     placeholder="0"
                     className="block w-full pl-8 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
@@ -197,12 +206,10 @@ export default function VehiculoRetiros({ placa }) {
 
         {/* HISTORIAL */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full overflow-hidden flex flex-col">
+          <div className="card h-full overflow-hidden flex flex-col dark:bg-slate-800 dark:border-slate-700">
 
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-bold">
-                Historial de retiros
-              </h2>
+            <div className="card-section border-b border-slate-100 dark:border-slate-700">
+              <h2 className="card-title">Historial de retiros</h2>
             </div>
 
             <div className="flex-1 overflow-x-auto">

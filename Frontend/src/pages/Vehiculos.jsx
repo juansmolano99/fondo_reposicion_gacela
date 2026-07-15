@@ -3,6 +3,7 @@ import axios from "../api/axios";
 import Resumen from "../components/Resumen";
 import DetalleAnual from "../components/DetalleAnual";
 import VehiculoRetiros from "../components/Retiros/VehiculoRetiros";
+import ListaSolicitudes from "../components/Solicitudes/ListaSolicitudes";
 
 
 // Formato moneda COP
@@ -19,6 +20,7 @@ export default function Vehiculos() {
   const [vista, setVista] = useState("consulta"); // consulta | resumen | detalle
   const [anioSeleccionado, setAnioSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [refreshSolicitudes, setRefreshSolicitudes] = useState(0);
 
   const buscar = async () => {
     if (!placa) return;
@@ -38,17 +40,29 @@ export default function Vehiculos() {
     }
   };
 
+  const handlePlacaChange = (e) => {
+    let input = e.target.value.toUpperCase();
+    let cleanInput = input.replace(/[^A-Z0-9]/g, '');
+    let letters = cleanInput.substring(0, 3).replace(/[^A-Z]/g, '');
+    let numbers = cleanInput.substring(3, 6).replace(/[^0-9]/g, '');
+    let formatted = letters;
+    if (letters.length === 3 && cleanInput.length > 3) {formatted += '-' + numbers;} 
+    else if (letters.length === 3 && input.endsWith('-')) {formatted += '-';}
+    setPlaca(formatted);
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Vehículos</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Vehículos</h1>
 
       {/* Buscador */}
       <div className="flex gap-2 max-w-md">
         <input
-          className="border rounded px-3 py-2 flex-1"
+          className="border rounded px-3 py-2 flex-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
           placeholder="Placa (ej: AAA-123)"
           value={placa}
-          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
+          onChange={handlePlacaChange}
+          maxLength={7}
         />
         <button
           onClick={buscar}
@@ -63,16 +77,16 @@ export default function Vehiculos() {
       {vehiculo && (
         <div className="space-y-6">
           {/* Header */}
-          <div className="bg-white rounded-xl p-6 shadow">
-            <h2 className="text-2xl font-bold">{vehiculo.placa}</h2>
-            <p className="text-slate-500">
+          <div className="card card-section rounded-xl shadow">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{vehiculo.placa}</h2>
+            <p className="card-subtitle">
               Numero Interno: {vehiculo.numeroInternoActual} ·{" "}
               Vida Util Restante: {vehiculo.vidaUtilAnios} {"Años"}
             </p>
           </div>
 
           {/* Menú de vistas */}
-          <div className="flex gap-4 border-b">
+          <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
             <Tab
               label="Consulta"
               active={vista === "consulta"}
@@ -92,6 +106,11 @@ export default function Vehiculos() {
               label="Retiros"
               active={vista === "retiros"}
               onClick={() => setVista("retiros")}
+            />
+            <Tab
+              label="Solicitudes"
+              active={vista === "solicitudes"}
+              onClick={() => setVista ("solicitudes")}
             />
 
 
@@ -115,8 +134,8 @@ export default function Vehiculos() {
                 />
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow">
-                <h3 className="text-lg font-semibold mb-4">
+              <div className="card card-section rounded-xl shadow">
+                <h3 className="card-title mb-4">
                   Información general
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -158,6 +177,16 @@ export default function Vehiculos() {
           {vista === "retiros" && (
             <VehiculoRetiros placa={vehiculo.placa} />
           )}
+
+          {/* ===== VISTA SOLICITUDES ===== */}
+          {vista === "solicitudes" && (
+            <div className="space-y-4">
+              <ListaSolicitudes
+                key={refreshSolicitudes}
+                placaVehiculo={vehiculo.placa}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -173,7 +202,7 @@ function Tab({ label, active, onClick }) {
       className={`pb-2 font-medium border-b-2 transition ${
         active
           ? "border-green-600 text-green-600"
-          : "border-transparent text-slate-500 hover:text-slate-700"
+          : "border-transparent text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white"
       }`}
     >
       {label}
@@ -183,9 +212,9 @@ function Tab({ label, active, onClick }) {
 
 function Kpi({ title, value }) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow">
-      <p className="text-sm text-slate-500">{title}</p>
-      <p className="text-2xl font-bold mt-2">{value}</p>
+    <div className="card p-5 rounded-xl shadow">
+      <p className="text-sm text-slate-500 dark:text-slate-300">{title}</p>
+      <p className="text-2xl font-bold mt-2 text-slate-900 dark:text-white">{value}</p>
     </div>
   );
 }
@@ -193,8 +222,8 @@ function Kpi({ title, value }) {
 function Item({ label, value }) {
   return (
     <div className="flex flex-col">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className="text-slate-500 dark:text-slate-300">{label}</span>
+      <span className="font-medium text-slate-900 dark:text-white">{value}</span>
     </div>
   );
 }

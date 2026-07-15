@@ -19,6 +19,7 @@ public class DashboardController : ControllerBase
     {
         var totalReposicion = _provider.ObtenerTotalReposicion();
         var totalRetiros = _provider.ObtenerTotalRetiros();
+        var presupuestoUtilizado = _provider.ObtenerPresupuestoUtilizado();
         var usuariosActivos = _provider.ObtenerUsuariosActivos();
         var flujoMensual = _provider.ObtenerFlujoMensual();
 
@@ -27,7 +28,7 @@ public class DashboardController : ControllerBase
             totalReposicion,
             totalRetiros,
             usuariosActivos,
-            presupuestoUtilizado = 0,   // placeholder si aplica
+            presupuestoUtilizado,   // placeholder si aplica
             flujoMensual
         });
     }

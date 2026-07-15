@@ -409,6 +409,32 @@ public class MySqlDataProvider : IDataProvider
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
+    public decimal ObtenerPresupuestoUtilizado()
+{
+    using var conn = new MySqlConnection(_connectionString);
+    conn.Open();
+
+    var cmd = new MySqlCommand(@"
+        SELECT 
+            ROUND(
+                IF(
+                    total_reposicion > 0,
+                    (total_retiros / total_reposicion) * 100,
+                    0
+                ),
+            2)
+        FROM
+        (
+            SELECT 
+                (IFNULL(SUM(fr.total_2024),0) + IFNULL(SUM(fr.total_2025),0)) AS total_reposicion,
+                (SELECT IFNULL(SUM(monto),0) FROM fondo_repo_retiros) AS total_retiros
+            FROM Fondo_Repo fr
+        ) t;
+    ", conn);
+
+    return Convert.ToDecimal(cmd.ExecuteScalar());
+}
+
     public List<FlujoMensualDto> ObtenerFlujoMensual()
     {
         var cols = FondoRepoSchemaHelper.GetTodasColumnasMensuales(_connectionString);
@@ -677,5 +703,150 @@ public void ActualizarSaldoDisponible(string placa, decimal monto)
     public List<int> ObtenerPermisosPorRol(int rolId)
     {
         throw new NotImplementedException();
+    }
+
+    // ===== SOLICITUDES =====
+
+    private void EnsureSolicitudesTableExists(MySqlConnection conn)
+    {
+        using var cmd = new MySqlCommand(@"
+            CREATE TABLE IF NOT EXISTS fondo_repo_solicitudes_produc (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                placa VARCHAR(10) NOT NULL,
+                valor_estimado DECIMAL(18,2) NOT NULL,
+                nombre_completo VARCHAR(255) NOT NULL,
+                naturaleza VARCHAR(50) NOT NULL,
+                descripcion TEXT NOT NULL,
+                estado VARCHAR(50) NOT NULL,
+                archivo_ruta VARCHAR(500) NULL,
+                usuario VARCHAR(100) NULL,
+                fecha_creacion DATETIME NOT NULL
+            );
+        ", conn);
+        cmd.ExecuteNonQuery();
+    }
+
+    public List<SolicitudDtoResponse> ObtenerSolicitudes()
+    {
+        var lista = new List<SolicitudDtoResponse>();
+        using var conn = new MySqlConnection(_connectionString);
+        conn.Open();
+        EnsureSolicitudesTableExists(conn);
+
+        using var cmd = new MySqlCommand(@"
+            SELECT id, placa, valor_estimado, nombre_completo, naturaleza, descripcion, estado, archivo_ruta, fecha_creacion
+            FROM fondo_repo_solicitudes_produc
+            ORDER BY fecha_creacion DESC, id DESC
+        ", conn);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            lista.Add(new SolicitudDtoResponse
+            {
+                Id = reader.GetInt32("id"),
+                Placa = reader.GetString("placa"),
+                ValorEstimado = reader.GetDecimal("valor_estimado"),
+                NombreCompleto = reader.GetString("nombre_completo"),
+                Naturaleza = reader.GetString("naturaleza"),
+                Descripcion = reader.GetString("descripcion"),
+                Estado = reader.GetString("estado"),
+                ArchivoRuta = reader.IsDBNull(reader.GetOrdinal("archivo_ruta")) ? null : reader.GetString("archivo_ruta"),
+                FechaCreacion = reader.GetDateTime("fecha_creacion")
+            });
+        }
+        return lista;
+    }
+
+    public List<SolicitudDtoResponse> ObtenerSolicitudesPorPlaca(string placa)
+    {
+        var lista = new List<SolicitudDtoResponse>();
+        using var conn = new MySqlConnection(_connectionString);
+        conn.Open();
+        EnsureSolicitudesTableExists(conn);
+
+        using var cmd = new MySqlCommand(@"
+            SELECT id, placa, valor_estimado, nombre_completo, naturaleza, descripcion, estado, archivo_ruta, fecha_creacion
+            FROM fondo_repo_solicitudes_produc
+            WHERE placa = @placa
+            ORDER BY fecha_creacion DESC, id DESC
+        ", conn);
+        cmd.Parameters.AddWithValue("@placa", placa);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            lista.Add(new SolicitudDtoResponse
+            {
+                Id = reader.GetInt32("id"),
+                Placa = reader.GetString("placa"),
+                ValorEstimado = reader.GetDecimal("valor_estimado"),
+                NombreCompleto = reader.GetString("nombre_completo"),
+                Naturaleza = reader.GetString("naturaleza"),
+                Descripcion = reader.GetString("descripcion"),
+                Estado = reader.GetString("estado"),
+                ArchivoRuta = reader.IsDBNull(reader.GetOrdinal("archivo_ruta")) ? null : reader.GetString("archivo_ruta"),
+                FechaCreacion = reader.GetDateTime("fecha_creacion")
+            });
+        }
+        return lista;
+    }
+
+    public SolicitudDtoResponse CrearSolicitud(CrearSolicitudDto dto)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+        conn.Open();
+        EnsureSolicitudesTableExists(conn);
+
+        var fecha = DateTime.UtcNow;
+        var estado = "Radicado";
+
+        using var cmd = new MySqlCommand(@"
+            INSERT INTO fondo_repo_solicitudes_produc
+                (placa, valor_estimado, nombre_completo, naturaleza, descripcion, estado, archivo_ruta, usuario, fecha_creacion)
+            VALUES
+                (@placa, @valor, @nombre, @naturaleza, @descripcion, @estado, @archivo, @usuario, @fecha);
+            SELECT LAST_INSERT_ID();
+        ", conn);
+
+        cmd.Parameters.AddWithValue("@placa", dto.Placa);
+        cmd.Parameters.AddWithValue("@valor", dto.ValorEstimado);
+        cmd.Parameters.AddWithValue("@nombre", dto.NombreCompleto);
+        cmd.Parameters.AddWithValue("@naturaleza", dto.Naturaleza);
+        cmd.Parameters.AddWithValue("@descripcion", dto.Descripcion);
+        cmd.Parameters.AddWithValue("@estado", estado);
+        cmd.Parameters.AddWithValue("@archivo", (object?)dto.RutaAdjunto ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@usuario", (object?)dto.Usuario ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@fecha", fecha);
+
+        var id = Convert.ToInt32(cmd.ExecuteScalar());
+
+        return new SolicitudDtoResponse
+        {
+            Id = id,
+            Placa = dto.Placa,
+            ValorEstimado = dto.ValorEstimado,
+            NombreCompleto = dto.NombreCompleto,
+            Naturaleza = dto.Naturaleza,
+            Descripcion = dto.Descripcion,
+            Estado = estado,
+            ArchivoRuta = dto.RutaAdjunto,
+            FechaCreacion = fecha
+        };
+    }
+
+    public bool ActualizarEstadoSolicitud(int id, string nuevoEstado)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+        conn.Open();
+        EnsureSolicitudesTableExists(conn);
+
+        using var cmd = new MySqlCommand(@"
+            UPDATE fondo_repo_solicitudes_produc
+            SET estado = @estado
+            WHERE id = @id
+        ", conn);
+        cmd.Parameters.AddWithValue("@estado", nuevoEstado);
+        cmd.Parameters.AddWithValue("@id", id);
+        var rows = cmd.ExecuteNonQuery();
+        return rows > 0;
     }
 }

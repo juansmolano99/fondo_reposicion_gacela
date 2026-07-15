@@ -11,6 +11,8 @@ import CargueFondo from "./pages/CargueFondo";
 import Unauthorized from "./pages/Unauthorized";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
+import NuevaSolicitud from "./pages/NuevaSolicitud";
+import Solicitudes from "./pages/Solicitudes";
 import { isAuthenticated } from "./Utils/auth";
 
 export default function App() {const [isAuth, setIsAuth] = useState(isAuthenticated());
@@ -85,7 +87,28 @@ export default function App() {const [isAuth, setIsAuth] = useState(isAuthentica
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/nueva-solicitud"
+              element={
+                <ProtectedRoute permiso="VEHICULO_CONSULTAR">
+                  <NuevaSolicitud />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/solicitudes"
+              element={
+                <ProtectedRoute permiso="VEHICULO_CONSULTAR">
+                  <Solicitudes />
+                </ProtectedRoute>
+              }
+            />
+            
           </Route>
+
+            
+             
         )}
 
         {/* NO AUTORIZADO */}

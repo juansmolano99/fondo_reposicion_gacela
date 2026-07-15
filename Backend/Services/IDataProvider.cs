@@ -30,6 +30,7 @@ public interface IDataProvider
     // -------- Totales Dashboard -------- ///
     decimal ObtenerTotalReposicion();
     decimal ObtenerTotalRetiros();
+    decimal ObtenerPresupuestoUtilizado();
     int ObtenerUsuariosActivos();
     List<FlujoMensualDto> ObtenerFlujoMensual();
 
@@ -45,6 +46,12 @@ public interface IDataProvider
     void CrearRetiro(string placa, decimal monto, string? observacion, string usuario, string? rutaAdjunto = null);
 
     void ActualizarSaldoDisponible(string placa, decimal monto);
+
+    // ===== SOLICITUDES =====
+    List<SolicitudDtoResponse> ObtenerSolicitudes();
+    List<SolicitudDtoResponse> ObtenerSolicitudesPorPlaca(string placa);
+    SolicitudDtoResponse CrearSolicitud(CrearSolicitudDto dto);
+    bool ActualizarEstadoSolicitud(int id, string nuevoEstado);
 
     /// <summary>Cargue masivo: actualiza o agrega valores en una columna de fondo_repo_produc (ej. ene_26).</summary>
     void CargarColumnaFondo(string nombreColumna, List<(string placa, decimal valor)> datos);

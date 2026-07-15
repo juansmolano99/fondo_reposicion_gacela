@@ -1,10 +1,7 @@
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.10.118:5092";
-const API_URL = `${API_BASE}/api/auth`;
+import api from "../api/axios";
 
 export async function login(usuario, password) {
-  const response = await axios.post(`${API_URL}/login`, {
+  const response = await api.post(`/auth/login`, {
     usuario,
     password
   });

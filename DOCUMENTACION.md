@@ -13,8 +13,8 @@ Aplicación web para la gestión del **fondo de reposición** de vehículos: con
 ## 2. Estructura del proyecto
 
 ```
-Fondo_Reposicion_Gacela/
-├── Fondo_Repo_Gacela-ui/     # Frontend React
+Fondo_Reposicion_Gacela_V1/
+├── Frontend/                 # Frontend React
 │   ├── src/
 │   │   ├── api/              # Cliente axios (baseURL, token)
 │   │   ├── components/       # Sidebar, Header, ProtectedRoute, Retiros, etc.
@@ -104,12 +104,12 @@ Todas las rutas excepto login requieren `Authorization: Bearer <token>`.
 ### Frontend
 
 ```bash
-cd Fondo_Repo_Gacela-ui
+cd Frontend
 npm install
 npm run dev
 ```
 
-Por defecto se sirve en `http://192.168.10.118:5173`. La API se espera en `http://192.168.10.118:5092/api` (configurable en `src/api/axios.jsx`).
+Por defecto se sirve en `http://192.168.10.142:5173`. La API se espera en `http://192.168.10.142:5092/api` (configurable en `src/api/axios.jsx`).
 
 ### Backend
 
@@ -122,7 +122,7 @@ cd Backend
 dotnet run
 ```
 
-La API queda en `http://192.168.10.118:5092` (puerto según configuración).
+La API queda en `http://192.168.10.142:5092` (puerto según configuración).
 
 ---
 
