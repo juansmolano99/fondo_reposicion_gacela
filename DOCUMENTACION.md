@@ -5,7 +5,7 @@
 Aplicación web para la gestión del **fondo de reposición** de vehículos: consulta por placa, resúmenes por año, retiros con opción de adjuntos y cargue masivo de datos (ej. nuevos periodos como Ene_2026). Incluye módulos de usuarios, roles, permisos y dashboard.
 
 - **Frontend:** React 19 + Vite + Tailwind CSS 4 (SPA).
-- **Backend:** ASP.NET Core 8, API REST con JWT.
+- **Backend:** PHP con Slim Framework, API REST con JWT.
 - **Base de datos:** MySQL (tablas `fondo_repo_produc`, `fondo_repo_retiros_produc`, `usuarios`, `roles`, `permisos`, `rol_permisos`).
 
 ---
@@ -26,14 +26,16 @@ Fondo_Reposicion_Gacela_V1/
 │   │   └── Utils/             # auth.js (JWT, permisos), format.js
 │   ├── vite.config.js
 │   └── package.json
-├── Backend/
-│   ├── Controllers/          # Auth, Dashboard, Retiros, Usuarios, Roles, Vehiculos, FondoCargue
-│   ├── DTOs/
-│   ├── Models/
-│   ├── Services/             # MySqlDataProvider, FondoRepoSchema, AuthService, PasswordHasher
-│   ├── Scripts/              # add_ruta_adjunto_retiros.sql
-│   ├── Program.cs
-│   └── appsettings.json
+├── api/                      # Backend PHP
+│   ├── src/
+│   │   ├── Controllers/      # Auth, Dashboard, Retiros, Usuarios, Roles, Vehiculos, FondoCargue
+│   │   ├── Middleware/       # AuthMiddleware, CorsMiddleware
+│   │   ├── DbProvider.php   # Proveedor de base de datos
+│   │   ├── FileStorage.php   # Manejo de archivos
+│   │   ├── JwtHelper.php     # Generación y validación de JWT
+│   │   ├── PasswordHasher.php # Hash de contraseñas
+│   │   └── index.php         # Punto de entrada
+│   └── uploads/              # Archivos adjuntos
 └── DOCUMENTACION.md          # Este archivo
 ```
 
@@ -109,20 +111,20 @@ npm install
 npm run dev
 ```
 
-Por defecto se sirve en `http://192.168.10.142:5173`. La API se espera en `http://192.168.10.142:5092/api` (configurable en `src/api/axios.jsx`).
+Por defecto se sirve en `http://localhost:5173`. La API se espera en `http://localhost:8000/api` (configurable en `src/api/axios.jsx`).
 
 ### Backend
 
-- Configurar en `appsettings.json` la cadena de conexión `MySql` y `Jwt:Key`, `Jwt:Issuer`, `Jwt:Audience`.
-- Crear la carpeta `wwwroot` en Backend y dentro `wwwroot/adjuntos` para que los adjuntos de retiros se guarden y se sirvan en `/adjuntos/...`.
-- Ejecutar el script `Scripts/add_ruta_adjunto_retiros.sql` en la base MySQL si se usan adjuntos en retiros.
+- Configurar en `api/src/Config.php` la cadena de conexión MySQL y configuración JWT.
+- Crear la carpeta `api/uploads/adjuntos` para que los adjuntos de retiros se guarden y se sirvan en `/adjuntos/...`.
+- Ejecutar el script SQL correspondiente en la base MySQL si se usan adjuntos en retiros.
 
 ```bash
-cd Backend
-dotnet run
+cd api
+php -S localhost:8000 -t public
 ```
 
-La API queda en `http://192.168.10.142:5092` (puerto según configuración).
+La API queda en `http://localhost:8000` (puerto según configuración).
 
 ---
 
@@ -148,5 +150,5 @@ La API queda en `http://192.168.10.142:5092` (puerto según configuración).
 ## 8. Notas de mantenimiento
 
 - Al agregar un nuevo año o mes en la tabla (ej. `ene_2026`), basta con crear la columna en MySQL (o usar el cargue con un CSV); el backend la detecta y la incluye en consultas y totales.
-- Los adjuntos de retiros se guardan en el servidor en `wwwroot/adjuntos`; en producción conviene definir política de respaldo y límite de tamaño (el endpoint limita a 10 MB).
+- Los adjuntos de retiros se guardan en el servidor en `api/uploads/adjuntos`; en producción conviene definir política de respaldo y límite de tamaño (el endpoint limita a 10 MB).
 - La URL base del API y la del frontend se pueden externalizar a variables de entorno para distintos entornos.

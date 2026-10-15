@@ -20,7 +20,7 @@ Para información detallada sobre arquitectura, instalación y uso, consulta [DO
 ```
 Fondo_Reposicion_Gacela_V1/
 ├── Frontend/          # Aplicación React + Vite
-├── Backend/           # API REST ASP.NET Core
+├── api/               # API REST PHP
 ├── DOCUMENTACION.md   # Documentación técnica completa
 └── README.md          # Este archivo
 ```
@@ -28,5 +28,5 @@ Fondo_Reposicion_Gacela_V1/
 ## Tecnologías
 
 - **Frontend:** React 19 + Vite + Tailwind CSS 4
-- **Backend:** ASP.NET Core 8
+- **Backend:** PHP con Slim Framework
 - **Base de datos:** MySQL

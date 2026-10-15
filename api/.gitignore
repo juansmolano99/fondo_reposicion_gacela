@@ -1,0 +1,6 @@
+/vendor/
+.env
+/uploads/adjuntos/*
+!/uploads/adjuntos/.gitkeep
+!/uploads/adjuntos/solicitudes/
+!/uploads/adjuntos/solicitudes/.gitkeep

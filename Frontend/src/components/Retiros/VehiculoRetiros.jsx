@@ -9,7 +9,7 @@ const formatCOP = (value) =>
     minimumFractionDigits: 0,
   }).format(Number(value || 0));
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.10.142:5092";
+const API_BASE = import.meta.env.VITE_API_URL || "http://192.168.10.142:8000";
 
 function VerAdjuntoLink({ ruta }) {
   const [loading, setLoading] = useState(false);
