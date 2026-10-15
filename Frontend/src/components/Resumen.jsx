@@ -46,18 +46,24 @@ export default function Resumen({ vehiculo, onSelectAnio }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ResumenCard
           label="Año 2023"
-          value={formatCOP(data.total2023)}
+          value={formatCOP(vehiculo.total2023)}
           onClick={() => onSelectAnio(2023)}
         />
         <ResumenCard
           label="Año 2024"
-          value={formatCOP(data.total2024)}
+          value={formatCOP(vehiculo.total2024)}
           onClick={() => onSelectAnio(2024)}
         />
         <ResumenCard
           label="Año 2025"
-          value={formatCOP(data.total2025)}
+          value={formatCOP(vehiculo.total2025)}
           onClick={() => onSelectAnio(2025)}
+        />
+      
+        <ResumenCard
+          label="Año 2026"
+          value={formatCOP(vehiculo.total2026)}
+          onClick={() => onSelectAnio(2026)}
         />
       </div>
 
@@ -65,11 +71,11 @@ export default function Resumen({ vehiculo, onSelectAnio }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Kpi
           title="Total general"
-          value={formatCOP(data.totalGeneral)}
+          value={formatCOP(vehiculo.totalGeneral)}
         />
         <Kpi
           title="Promedio mensual"
-          value={formatCOP(data.promedioMensual)}
+          value={formatCOP(vehiculo.promedioMensual)}
         />
       </div>
     </div>

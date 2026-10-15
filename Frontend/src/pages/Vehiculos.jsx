@@ -63,6 +63,9 @@ export default function Vehiculos() {
           value={placa}
           onChange={handlePlacaChange}
           maxLength={7}
+          onKeyDown={(e) => {
+                  if (e.key === "Enter") 
+                  buscar();}}
         />
         <button
           onClick={buscar}
@@ -131,6 +134,10 @@ export default function Vehiculos() {
                 <Kpi
                   title="Total 2025"
                   value={formatCOP(vehiculo.total2025)}
+                />
+                <Kpi
+                  title="Total 2026"
+                  value={formatCOP(vehiculo.total2026)}
                 />
               </div>
 

@@ -17,6 +17,9 @@ export const crearUsuario = async (data) => {
 export const editarUsuario = async (id, data) => {
   await api.put(`/usuarios/${id}`, data);
 };
+export const restablecerPasswordUsuario = async (id, data) => {
+  await api.put(`/usuarios/${id}/password`, data);
+};
 
 export const cambiarEstadoUsuario = async (id) => {
   await api.put(`/usuarios/${id}/estado`, {});

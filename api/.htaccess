@@ -1,0 +1,31 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Denegar acceso HTTP a código, dependencias y secretos
+    RewriteRule ^(?:src|vendor)/ - [F,L]
+    RewriteRule ^(?:composer\.(json|lock)|composer\.phar)$ - [F,L]
+    RewriteRule ^\.env - [F,L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<FilesMatch "^\.env">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 12M
+    php_value post_max_size 12M
+</IfModule>
+
+<IfModule lsapi_module>
+    php_value upload_max_filesize 12M
+    php_value post_max_size 12M
+</IfModule>

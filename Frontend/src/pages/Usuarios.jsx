@@ -6,6 +6,7 @@ import {
   editarUsuario,
   cambiarEstadoUsuario,
   eliminarUsuario,
+  restablecerPasswordUsuario, // <--- Importamos la nueva función
 } from "../Services/usuariosService";
 
 const PAGE_SIZE = 5;
@@ -22,6 +23,7 @@ export default function Usuarios() {
   const [modalCrear, setModalCrear] = useState(false);
   const [modalEditar, setModalEditar] = useState(null);
   const [modalEliminar, setModalEliminar] = useState(null);
+  const [modalPassword, setModalPassword] = useState(null); // <--- Estado para Modal Restablecer Contraseña
   const [guardando, setGuardando] = useState(false);
 
   const cargarDatos = async () => {
@@ -136,6 +138,27 @@ export default function Usuarios() {
     }
   };
 
+  // Handler para restablecer la contraseña
+  const handleRestablecerPasswordUsuario = async (e) => {
+    e.preventDefault();
+    const password = e.target.password.value.trim();
+    if (!password) {
+      setError("Ingrese la nueva contraseña");
+      return;
+    }
+    setGuardando(true);
+    setError(null);
+    try {
+      await restablecerPasswordUsuario(modalPassword.id, { password });
+      setModalPassword(null);
+      alert("Contraseña restablecida correctamente");
+    } catch (err) {
+      setError(err.response?.data || "Error al restablecer la contraseña");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   const rolesOpciones = roles.map((r) => ({ value: r.value || r.label, label: r.label || r.value }));
 
   if (loading) return <p className="p-8">Cargando usuarios...</p>;
@@ -215,6 +238,13 @@ export default function Usuarios() {
                     className="px-3 py-1 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
                   >
                     {u.activo ? "Inactivar" : "Activar"}
+                  </button>
+                  <button
+                    onClick={() => setModalPassword(u)}
+                    className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600"
+                    title="Restablecer Contraseña"
+                  >
+                    Clave
                   </button>
                   <button
                     onClick={() => setModalEditar(u)}
@@ -299,6 +329,32 @@ export default function Usuarios() {
             <div className="flex gap-2 justify-end pt-4">
               <button type="button" onClick={() => setModalEditar(null)} className="px-4 py-2 rounded-lg border">Cancelar</button>
               <button type="submit" disabled={guardando} className="px-4 py-2 rounded-lg bg-primary text-white">{guardando ? "Guardando…" : "Guardar"}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal Restablecer Contraseña */}
+      {modalPassword && (
+        <Modal titulo={`Restablecer contraseña - ${modalPassword.nombreUsuario}`} onCerrar={() => setModalPassword(null)}>
+          <form onSubmit={handleRestablecerPasswordUsuario} className="space-y-4">
+            <p className="text-sm text-slate-500">
+              Ingrese la nueva contraseña para <strong>{modalPassword.nombreCompleto}</strong>.
+            </p>
+            <input
+              name="password"
+              type="password"
+              placeholder="Nueva contraseña"
+              required
+              className="w-full px-4 py-2 rounded-lg border dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-white"
+            />
+            <div className="flex gap-2 justify-end pt-4">
+              <button type="button" onClick={() => setModalPassword(null)} className="px-4 py-2 rounded-lg border">
+                Cancelar
+              </button>
+              <button type="submit" disabled={guardando} className="px-4 py-2 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-600">
+                {guardando ? "Actualizando…" : "Cambiar Contraseña"}
+              </button>
             </div>
           </form>
         </Modal>

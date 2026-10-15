@@ -26,7 +26,7 @@ export const menuItems = [
     icon: "upload_file",
     categoria: "operaciones",
   },
-  {
+   {
     label: "Usuarios",
     path: "/usuarios",
     permiso: "USUARIO_CREAR",
@@ -40,4 +40,5 @@ export const menuItems = [
     icon: "admin_panel_settings",
     categoria: "soporte",
   },
+
 ];

@@ -1,18 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  getDashboardResumen,
-  getRetirosPorPlaca,
-  getVehiculoFondosMensuales,
-  getVehiculoResumen,
-} from "../Services/dashboardService";
+import {getDashboardResumen, getRetirosPorPlaca, getVehiculoFondosMensuales, getVehiculoResumen,} from "../Services/dashboardService";
 import { formatCurrencyCOP } from "../Utils/format";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const formatMillions = (value) => {
   if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(0)} MM`;  // Formatea como $100 MM
+    return `$${(value / 1000000).toFixed(0)} MM`;
   }
-  return `$${value.toLocaleString()}`;  // En caso de que no sea millón, muestra el número con separadores
+  return `$${value.toLocaleString()}`;
 };
 
 const formatPlaca = (value) => {
@@ -36,9 +31,18 @@ export default function Dashboard() {
   const [placaQuery, setPlacaQuery] = useState("");
   const [modo, setModo] = useState("general");
   const [error, setError] = useState("");
-  const [anio, setAnio] = useState(() => new Date().getFullYear());
+  const [anio, setAnio] = useState("todos");
 
   const anioActual = useMemo(() => new Date().getFullYear(), []);
+  
+  // Años disponibles para la selección rápida
+  const aniosOpciones = useMemo(() => [
+    anioActual,
+    anioActual - 1,
+    anioActual - 2,
+    anioActual - 3,
+    anioActual - 4
+  ], [anioActual]);
 
   useEffect(() => {
     if (modo === "general") {
@@ -70,15 +74,18 @@ export default function Dashboard() {
             return;
           }
 
+          const anioParam = anio === "todos" ? null : anio;
+
           const [resumenVeh, fondos, retiros] = await Promise.all([
             getVehiculoResumen(placaTrim),
-            getVehiculoFondosMensuales(placaTrim, anio),
-            getRetirosPorPlaca(placaTrim),
+            getVehiculoFondosMensuales(placaTrim, anioParam),
+            getRetirosPorPlaca(placaTrim, anioParam),
           ]);
 
-          const totalRetiros = Array.isArray(retiros)
-            ? retiros.reduce((acc, r) => acc + Number(r?.monto || 0), 0)
-            : 0;
+          // Asegúrate de sumar los retiros correctamente según la estructura que devuelva tu API
+          const totalRetiros = Array.isArray(retiros) 
+            ? retiros.reduce((acc, r) => acc + Number(r.valor || r.monto || 0), 0)
+            : Number(retiros?.total || retiros || 0);
 
           const valoresMensuales = fondos?.valores || {};
           const flujoMensual = Object.entries(valoresMensuales).map(([mes, valor]) => ({
@@ -87,14 +94,15 @@ export default function Dashboard() {
           }));
 
           const totalReposicion = sumValues(valoresMensuales);
+          
 
           if (!cancelled) {
             setData({
               modo: "placa",
               placa: placaTrim,
-              totalReposicion,
-              totalRetiros,
-              usuariosActivos: null,
+              totalReposicion: totalReposicion - totalRetiros,
+              totalRetiros: totalRetiros,
+              /*usuariosActivos: null,*/
               presupuestoUtilizado: null,
               flujoMensual,
               fondosMensuales: valoresMensuales,
@@ -103,8 +111,9 @@ export default function Dashboard() {
             });
           }
         } else {
-          const res = await getDashboardResumen();
-          if (!cancelled) setData({ ...res, modo: "general" });
+          // <-- PASAMOS EL AÑO SELECCIONADO A LA PETICIÓN GENERAL
+          const res = await getDashboardResumen(anio);
+          if (!cancelled) setData({ ...res, modo: "general", anio });
         }
       } catch (err) {
         console.error("Error cargando dashboard", err);
@@ -122,9 +131,10 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [modo, placaQuery, anio, anioActual]);
-  
 
   if (loading) return <div className="text-slate-600 dark:text-slate-300">Cargando dashboard...</div>;
+
+  console.log("Datos recibidos del backend:", data);
 
   return (
     <div className="space-y-6">
@@ -134,7 +144,24 @@ export default function Dashboard() {
           <p className="text-sm text-slate-500 dark:text-slate-400">Resumen general y por placa</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* SELECTOR DE AÑO GLOBAL */}
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-sm">
+            <span className="text-xs font-black uppercase text-slate-400">Año:</span>
+            <select
+              value={anio}
+              onChange={(e) => setAnio(e.target.value === "todos" ? "todos" : Number(e.target.value))}
+              className="bg-transparent font-black text-sm text-slate-800 dark:text-white focus:outline-none cursor-pointer"
+            >
+              <option value="todos" className="dark:bg-slate-900">Todos (General)</option>
+              {aniosOpciones.map((y) => (
+                <option key={y} value={y} className="dark:bg-slate-900">
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="card p-1 rounded-xl border-slate-200 dark:border-slate-800">
             <button
               type="button"
@@ -217,18 +244,26 @@ export default function Dashboard() {
           <Kpi
             title="Total Reposición"
             value={formatCurrencyCOP(data.totalReposicion)}
-            subtitle={data?.modo === "placa" ? `Placa: ${data.placa}` : "General"}
+            subtitle={
+              data?.modo === "placa" 
+                ? `Placa: ${data.placa} (${anio === "todos" ? "Histórico" : anio})` 
+                : (anio === "todos" ? "General acumulado" : `Año ${anio}`)
+            }
           />
           <Kpi
             title="Total Retiros"
             value={formatCurrencyCOP(data.totalRetiros)}
-            subtitle={data?.modo === "placa" ? "Histórico de retiros" : "General"}
+            subtitle={
+              data?.modo === "placa" 
+                ? `Histórico (${anio === "todos" ? "Histórico" : anio})` 
+                : (anio === "todos" ? "General acumulado" : `Año ${anio}`)
+            }
           />
-          <Kpi
+          {/*<Kpi
             title="Usuarios Activos"
             value={data.usuariosActivos ?? "—"}
-            subtitle={data?.modo === "placa" ? "No aplica" : "Sistema"}
-          />
+            subtitle={data?.modo === "placa" ? "No aplica" : "Indicador"}
+          />*/}
           <Kpi
             title="Presupuesto (%)"
             value={data.presupuestoUtilizado != null ? `${data.presupuestoUtilizado}%` : "—"}
@@ -242,11 +277,11 @@ export default function Dashboard() {
           <div className="card-header">
             <div>
               <h2 className="card-title">Detalle por año</h2>
-              <p className="card-subtitle">Selecciona un año para ver el detalle mensual</p>
+              <p className="card-subtitle">Año {anio} - Detalle mensual de la placa</p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {[anioActual - 2, anioActual - 1, anioActual].map((y) => (
+              {aniosOpciones.slice(0, 4).map((y) => (
                 <button
                   key={y}
                   type="button"
@@ -301,7 +336,7 @@ export default function Dashboard() {
             <div>
               <h2 className="card-title">Flujo mensual de reposición</h2>
               <p className="card-subtitle">
-                {data?.modo === "placa" ? `Año ${anio} (por placa)` : "General"}
+                {data?.modo === "placa" ? `Año ${anio} (Placa: ${data.placa})` : `Año ${anio} (General)`}
               </p>
             </div>
           </div>

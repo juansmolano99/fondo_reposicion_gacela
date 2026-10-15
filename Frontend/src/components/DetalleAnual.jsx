@@ -35,7 +35,8 @@ export default function DetalleAnual({ placa, anio, onSelectAnio }) {
       try {
         setLoading(true);
         const res = await axios.get(
-          `/vehiculos/${placa}/fondos/${anio}`
+          `/vehiculos/${placa}/fondos`,
+          { params: { anio } }
         );
         setData(res.data);
       } catch (err) {
@@ -95,7 +96,7 @@ export default function DetalleAnual({ placa, anio, onSelectAnio }) {
             <p className="text-sm text-slate-500">Total año {anio}</p>
             <p className="text-3xl font-bold mt-2">
               {formatCOP(
-                Object.values(data.valores || {}).reduce(
+                Object.values(data.valores || {anio: 0}).reduce(
                   (acc, v) => acc + v,
                   0
                 )

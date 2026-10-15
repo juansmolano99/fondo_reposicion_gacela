@@ -59,7 +59,6 @@ export function getUserPermissions() {
   try {
     const decoded = jwtDecode(token);
 
-    // ASP.NET Core guarda los claims personalizados así
     const permisos = decoded?.permiso;
 
     if (!permisos) return [];
